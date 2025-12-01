@@ -38,6 +38,15 @@ class ToxicityFilter:
                 row (by index) in the text_train data frame's comments.
         """
         # [!] TODO: Implement the constructor tasks here!
+        self.vectorizer = CountVectorizer(stop_words='english')
+        self.vectorizer.fit(text_train)
+        self.vectorizer.transform(text_train)
+        # self.vectorizer.fit_transform(text_train, labels_train) apparently this messes up and retrains everytime according to spec
+        features = self.vectorizer.transform(text_train)
+
+        self.classifier = MultinomialNB()
+        self.classifier.fit(features, labels_train)
+        
         return
         
     def classify (self, text_test: list[str]) -> list[int]:
@@ -61,6 +70,9 @@ class ToxicityFilter:
                 The ints represent the classes such that y=0=non-toxic and y=1=toxic
         """
         # [!] TODO: Replace this with the proper return from classifying all of the input messages!
+        features = self.vectorizer.transform(text_test)
+        predictions = self.classifier.predict(features)
+        return list(predictions)
         return []
     
     def test_model (self, text_test: pd.DataFrame, labels_test: pd.DataFrame) -> tuple[str, dict]:
