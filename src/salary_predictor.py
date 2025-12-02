@@ -3,6 +3,7 @@ import numpy.typing as npt
 import pandas as pd
 import copy
 from sklearn import preprocessing # type: ignore
+from sklearn.preprocessing import OneHotEncoder # type: ignore
 from sklearn.impute import SimpleImputer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
 from sklearn.metrics import classification_report # type: ignore
@@ -36,6 +37,9 @@ class SalaryPredictor:
                 Pandas DataFrame consisting of the sample rows of labels 
                 pertaining to each person's salary
         """
+        # Initialize OneHotEncoder for categorical features
+        self.onehot_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+        
         features = self.preprocess(X_train, True)
         # [!] TODO: Feel free to change any of the LR hyperparameters during construction
         # for your tuning step!
@@ -69,7 +73,53 @@ class SalaryPredictor:
         """
         # [!] TODO: Implement preprocessing and replace the below with the converted ndarray
         # of numerical features!
-        return np.ndarray([])
+        
+        # Make a copy to avoid modifying the original DataFrame
+        features_clean = features.copy()
+        
+        # Clean up excess whitespace from string columns
+        for col in features_clean.columns:
+            if features_clean[col].dtype == 'object':  # String columns
+                features_clean[col] = features_clean[col].str.strip()
+        
+        # Separate categorical (non-discrete) and numerical (discrete) columns
+        categorical_cols = features_clean.select_dtypes(include=['object']).columns.tolist()
+        numerical_cols = features_clean.select_dtypes(exclude=['object']).columns.tolist()
+        
+        # Extract categorical and numerical data (maintaining row order for each person)
+        # Both extractions preserve the same row order from features_clean
+        categorical_data = features_clean[categorical_cols] if categorical_cols else pd.DataFrame()
+        if numerical_cols:
+            # Extract numerical columns maintaining row order
+            numerical_data = np.asarray(features_clean[numerical_cols].values)
+        else:
+            numerical_data = np.array([]).reshape(len(features_clean), 0)
+        
+        # One-hot encode categorical features (preserves row order)
+        if len(categorical_cols) > 0:
+            if training:
+                # Fit and transform during training
+                onehot_encoded = self.onehot_encoder.fit_transform(categorical_data)
+            else:
+                # Only transform during testing
+                onehot_encoded = self.onehot_encoder.transform(categorical_data)
+            
+            # Ensure onehot_encoded is numpy array
+            onehot_encoded = np.asarray(onehot_encoded)
+            
+            # Combine numerical and one-hot encoded features horizontally
+            # This keeps each row (person) together: row i from numerical_data 
+            # stays with row i from onehot_encoded
+            if len(numerical_cols) > 0:
+                features_final = np.hstack([numerical_data, onehot_encoded])
+            else:
+                features_final = onehot_encoded
+        else:
+            # Only numerical features
+            features_final = numerical_data
+        
+        # Ensure return type is numpy array
+        return np.asarray(features_final)
 
     def classify (self, X_test: pd.DataFrame) -> list[int]:
         """
