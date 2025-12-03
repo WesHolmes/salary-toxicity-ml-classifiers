@@ -3,7 +3,7 @@ import numpy.typing as npt
 import pandas as pd
 import copy
 from sklearn import preprocessing # type: ignore
-from sklearn.preprocessing import OneHotEncoder # type: ignore
+from sklearn.preprocessing import OneHotEncoder, StandardScaler # type: ignore
 from sklearn.impute import SimpleImputer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
 from sklearn.metrics import classification_report # type: ignore
@@ -39,6 +39,9 @@ class SalaryPredictor:
         """
         # Initialize OneHotEncoder for categorical features
         self.onehot_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+        
+        # Initialize StandardScaler for normalizing numerical features
+        self.scaler = StandardScaler()
         
         features = self.preprocess(X_train, True)
         # [!] TODO: Feel free to change any of the LR hyperparameters during construction
@@ -95,6 +98,18 @@ class SalaryPredictor:
         else:
             numerical_data = np.array([]).reshape(len(features_clean), 0)
         
+        # Scale numerical features to handle varying scales (e.g., age 18-100 vs capital_gain potentially 1800)
+        # This ensures features with larger scales don't dominate the model
+        if len(numerical_cols) > 0:
+            if training:
+                # Fit and transform during training
+                numerical_scaled = self.scaler.fit_transform(numerical_data)
+            else:
+                # Only transform during testing (use statistics from training)
+                numerical_scaled = self.scaler.transform(numerical_data)
+        else:
+            numerical_scaled = np.array([]).reshape(len(features_clean), 0)
+        
         # One-hot encode categorical features (preserves row order)
         if len(categorical_cols) > 0:
             if training:
@@ -107,16 +122,16 @@ class SalaryPredictor:
             # Ensure onehot_encoded is numpy array
             onehot_encoded = np.asarray(onehot_encoded)
             
-            # Combine numerical and one-hot encoded features horizontally
-            # This keeps each row (person) together: row i from numerical_data 
+            # Combine scaled numerical and one-hot encoded features horizontally
+            # This keeps each row (person) together: row i from numerical_scaled 
             # stays with row i from onehot_encoded
             if len(numerical_cols) > 0:
-                features_final = np.hstack([numerical_data, onehot_encoded])
+                features_final = np.hstack([numerical_scaled, onehot_encoded])
             else:
                 features_final = onehot_encoded
         else:
-            # Only numerical features
-            features_final = numerical_data
+            # Only numerical features (already scaled)
+            features_final = numerical_scaled
         
         # Ensure return type is numpy array
         return np.asarray(features_final)
