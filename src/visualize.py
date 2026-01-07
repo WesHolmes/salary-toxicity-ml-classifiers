@@ -1,7 +1,3 @@
-"""
-Data visualization utilities for the salary prediction project.
-Run this script to generate various visualizations of the data and model performance.
-"""
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
