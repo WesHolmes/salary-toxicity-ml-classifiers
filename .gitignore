@@ -188,3 +188,8 @@ launch.json
 .cache-main
 .scala_dependencies
 .worksheet
+
+#tests
+classifier_tests.py
+mypy.ini
+pytest.ini

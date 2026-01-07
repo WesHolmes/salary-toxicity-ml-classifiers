@@ -44,8 +44,6 @@ class SalaryPredictor:
         self.scaler = StandardScaler()
         
         features = self.preprocess(X_train, True)
-        # [!] TODO: Feel free to change any of the LR hyperparameters during construction
-        # for your tuning step!
         self.lrbc = LogisticRegression(max_iter=5000)
         self.lrbc.fit(features, y_train)
 
@@ -74,8 +72,7 @@ class SalaryPredictor:
             np.ndarray:
                 Numpy Array composed of numerical features converted from the raw inputs.
         """
-        # [!] TODO: Implement preprocessing and replace the below with the converted ndarray
-        # of numerical features!
+
         
         # Make a copy to avoid modifying the original DataFrame
         features_clean = features.copy()

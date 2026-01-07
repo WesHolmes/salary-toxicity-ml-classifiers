@@ -37,7 +37,6 @@ class ToxicityFilter:
                 The labels of 0 = non-toxic and 1 = toxic corresponding to each
                 row (by index) in the text_train data frame's comments.
         """
-        # [!] TODO: Implement the constructor tasks here!
         self.vectorizer = CountVectorizer(stop_words='english')
         self.vectorizer.fit(text_train)
         self.vectorizer.transform(text_train)
@@ -69,7 +68,6 @@ class ToxicityFilter:
                 index of the output class corresponds to the index of input message.
                 The ints represent the classes such that y=0=non-toxic and y=1=toxic
         """
-        # [!] TODO: Replace this with the proper return from classifying all of the input messages!
         features = self.vectorizer.transform(text_test)
         predictions = self.classifier.predict(features)
         return list(predictions)
