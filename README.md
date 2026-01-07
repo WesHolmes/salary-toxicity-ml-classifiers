@@ -480,11 +480,6 @@ For issues or questions:
 
 - **Westley Holmes**
 - **Nick**
-- **Matt**
-
-## License
-
-[Specify your license here]
 
 ## Acknowledgments
 
